@@ -2,12 +2,14 @@
 # This Python file uses the following encoding: utf-8
 import os
 import time
-from flask import request, jsonify, g
+from threading import Thread
+
+from flask import request, g
 from flask_cors import CORS
 from sqlalchemy import func
 from werkzeug.utils import secure_filename
 
-from rollcall.tools import allowed_file, sign_by_figure, get_response
+from rollcall.tools import allowed_file, sign_by_figure, get_response, verify_email, send_async_email
 from rollcall.utils import app, db
 from model import User, File, Course, UserCourse, StudentSign, Sign
 from flask_httpauth import HTTPBasicAuth
@@ -41,19 +43,22 @@ def sign_up():
     type = request.json.get('type') # 用户类型
     username = request.json.get('username')
     password = request.json.get('password')
+    email = request.json.get('mail')
     name = request.json.get('name')
     role = 1
     resp = {}
     msg = 'Register successful'
     if username is None or password is None:
         msg = 'Username and password can not be empty'
+    elif(not verify_email(email)):
+        msg = 'Email is Wrong'
     else:
         if User.query.filter_by(username=username).first() is not None:
             msg = 'The user already exists'
         else:
             if 'teacher' == type:
                 role = 0
-            user = User(username=username, name=name, role=role)
+            user = User(username=username, name=name, role=role, mail=email)
             user.hash_password(password)
             db.session.add(user)
             db.session.commit()
@@ -62,6 +67,15 @@ def sign_up():
     resp['role'] = role
     return get_response(resp)
     # return redirect(url_for('get_auth_token'))
+@app.route('/api/v1/auth/send_email/', methods=['GET'])
+def send_email():
+    request.args.get('username')
+    
+    msg.body = '内容'
+    thread = Thread(target=send_async_email, args=[app, msg])
+    thread.start()
+    return 'success'
+
 
 @auth.verify_password
 def verify_password(username_or_token, password):

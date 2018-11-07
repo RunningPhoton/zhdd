@@ -12,14 +12,16 @@ class User(db.Model):
     username = db.Column(db.String(30), index=True, unique=True)
     password_hash = db.Column(db.String(128))
     name = db.Column(db.String(20), index=True)
+    mail = db.Column(db.String(50), index=True)
     role = db.Column(db.Integer, default=1, index=True)
     verify = db.Column(db.Integer, default=1)
     create_at = db.Column(db.DateTime, default=datetime.datetime.now)
-    def __init__(self, username, name, role, id=None, password_hash=None, verify=None, create_at=None):
+    def __init__(self, username, name, role, mail, id=None, password_hash=None, verify=None, create_at=None):
         self.id = id
         self.username = username
         self.password_hash = password_hash
         self.name = name
+        self.mail = mail
         self.role = role
         self.verify = verify
         self.create_at = create_at

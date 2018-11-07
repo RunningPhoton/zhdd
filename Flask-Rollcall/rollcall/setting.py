@@ -1,6 +1,7 @@
 # coding=UTF-8
 # import os
 # This Python file uses the following encoding: utf-8
+
 DEBUG = True
 
 # session
@@ -22,5 +23,11 @@ UPLOAD_FOLDER_TEC = 'teachers/'
 MAX_CONTENT_LENGTH = 16 * 1024 * 1024
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 
+# mail
+MAIL_SERVER = 'smtp.qq.com'
+MAIL_PORT = 587
+MAIL_USE_TLS = True
+MAIL_USERNAME = 'cst_hyx@qq.com'
+MAIL_PASSWORD = 'herwyjliodigbfca'
 # path
 # path_abs = os.path.abspath('..')
