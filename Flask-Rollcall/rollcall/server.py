@@ -3,17 +3,41 @@
 import os
 import time
 from flask import request, jsonify, g
+from flask_cors import CORS
 from sqlalchemy import func
 from werkzeug.utils import secure_filename
 
-from rollcall.tools import allowed_file, sign_by_figure
+from rollcall.tools import allowed_file, sign_by_figure, get_response
 from rollcall.utils import app, db
 from model import User, File, Course, UserCourse, StudentSign, Sign
 from flask_httpauth import HTTPBasicAuth
+
 auth = HTTPBasicAuth()
+
+CORS(app, resources=r'/*')
+# @app.route('/articles_list/contents/')
+# def json_contents():
+#     response = make_response(jsonify(response='success'))
+#     response.headers['Access-Control-Allow-Origin'] = '*'
+#     response.headers['Access-Control-Allow-Methods'] = 'POST'
+#     response.headers['Access-Control-Allow-Headers'] = 'x-requested-with,content-type'
+#     return response
+
+
+
+@app.route('/api/v1/test/', methods=['GET'])
+def test():
+    resp = {}
+    msg = 'List coursesuccess'
+    resp['msg'] = msg
+    return get_response(resp)
+
+
+
 
 @app.route('/api/v1/auth/sign_up/', methods=['POST'])
 def sign_up():
+    print(request.json)
     type = request.json.get('type') # 用户类型
     username = request.json.get('username')
     password = request.json.get('password')
@@ -26,22 +50,25 @@ def sign_up():
     else:
         if User.query.filter_by(username=username).first() is not None:
             msg = 'The user already exists'
-        if 'teacher' == type:
-            role = 0
-    user = User(username=username, name=name, role=role)
-    user.hash_password(password)
-    db.session.add(user)
-    db.session.commit()
+        else:
+            if 'teacher' == type:
+                role = 0
+            user = User(username=username, name=name, role=role)
+            user.hash_password(password)
+            db.session.add(user)
+            db.session.commit()
 
     resp['msg'] = msg
     resp['role'] = role
-    return jsonify(resp)
+    return get_response(resp)
     # return redirect(url_for('get_auth_token'))
 
 @auth.verify_password
 def verify_password(username_or_token, password):
     # first try to authenticate by token
 
+    # print(username_or_token)
+    # print(password)
     user = User.verify_auth_token(username_or_token)
     if not user:
         # try to authenticate with username/password
@@ -59,7 +86,7 @@ def get_auth_token():
     resp['msg'] = 'Get token successful'
     resp['token'] = token.decode('ascii')
     resp['role'] = g.user.role
-    return jsonify(resp)
+    return get_response(resp)
 
 @app.route('/api/v1/tec/add_course/', methods=['POST'])
 @auth.login_required
@@ -85,7 +112,7 @@ def add_course():
             db.session.add(course)
             db.session.commit()
     resp['msg'] = msg
-    return jsonify(resp)
+    return get_response(resp)
 
 @app.route('/api/v1/tec/list_courses/', methods=['GET'])
 @auth.login_required
@@ -107,7 +134,7 @@ def list_courses():
             k['time'] = data.time
             resp['courses'].append(k)
     resp['msg'] = msg
-    return jsonify(resp)
+    return get_response(resp)
 
 @app.route('/api/v1/tec/delete_course/', methods=['DELETE'])
 @auth.login_required
@@ -130,7 +157,7 @@ def delete_course():
         delete_course = db.session.query(Course).filter_by(id=course_id).delete()
         db.session.commit()
     resp['msg'] = msg
-    return jsonify(resp)
+    return get_response(resp)
 
 @app.route('/api/v1/tec/sign/', methods=['POST'])
 @auth.login_required
@@ -194,7 +221,7 @@ def sign():
             db.session.add(student_sign)
         db.session.commit()
     resp['msg'] = msg
-    return jsonify(resp)
+    return get_response(resp)
 
 
 @app.route('/api/v1/tec/list_signs/', methods=['GET'])
@@ -224,7 +251,7 @@ def list_signs():
             resp['signs'].append(data)
             db.session.commit()
     resp['msg'] = msg
-    return jsonify(resp)
+    return get_response(resp)
 
 @app.route('/api/v1/tec/list_signature/', methods=['GET'])
 @auth.login_required
@@ -251,7 +278,7 @@ def list_signature():
             data['name'] = user.name
             resp['students'].append(data)
     resp['msg'] = msg
-    return jsonify(resp)
+    return get_response(resp)
 
 @app.route('/api/v1/tec/delete_signature/', methods=['DELETE'])
 @auth.login_required
@@ -271,7 +298,7 @@ def delete_signature():
             delete_sign = db.session.query(Sign).filter_by(course_id=course_id).filter_by(sign_count=sign_time).delete()
             db.session.commit()
     resp['msg'] = msg
-    return jsonify(resp)
+    return get_response(resp)
 
 @app.route('/api/v1/tec/add_student/', methods=['POST'])
 @auth.login_required
@@ -298,7 +325,7 @@ def add_student():
                 db.session.commit()
                 msg = msg + '\nstudent NO : {} add successful'.format(id)
     resp['msg'] = msg
-    return jsonify(resp)
+    return get_response(resp)
 
 @app.route('/api/v1/tec/list_all_students/', methods=['GET'])
 @auth.login_required
@@ -317,7 +344,7 @@ def list_all_students():
             data['name'] = user.name
             resp['students'].append(data)
     resp['msg'] = msg
-    return jsonify(resp)
+    return get_response(resp)
 
 @app.route('/api/v1/tec/delete_student/', methods=['DELETE'])
 @auth.login_required
@@ -344,7 +371,7 @@ def delete_student():
                 delete_stu_sign = db.session.query(StudentSign).filter_by(student_id=user.id).filter_by(sign_id=sign.id).delete()
             db.session.commit()
     resp['msg'] = msg
-    return jsonify(resp)
+    return get_response(resp)
 
 
 @app.route('/api/v1/file/upload/', methods=['POST'])
@@ -372,5 +399,5 @@ def upload_file():
     else:
         msg = 'Filename limitation'
     resp['msg'] = msg
-    return jsonify(resp)
+    return get_response(resp)
 

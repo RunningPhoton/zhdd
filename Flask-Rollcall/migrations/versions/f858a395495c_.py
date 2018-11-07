@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: 58325f7fa016
+Revision ID: f858a395495c
 Revises: 
-Create Date: 2018-10-29 10:31:07.428331
+Create Date: 2018-11-06 19:54:43.804197
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '58325f7fa016'
+revision = 'f858a395495c'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -30,7 +30,7 @@ def upgrade():
     )
     op.create_index(op.f('ix_users_name'), 'users', ['name'], unique=False)
     op.create_index(op.f('ix_users_role'), 'users', ['role'], unique=False)
-    op.create_index(op.f('ix_users_username'), 'users', ['username'], unique=False)
+    op.create_index(op.f('ix_users_username'), 'users', ['username'], unique=True)
     op.create_table('courses',
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
     sa.Column('code', sa.String(length=30), nullable=True),
@@ -42,7 +42,7 @@ def upgrade():
     sa.ForeignKeyConstraint(['teacher_id'], ['users.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_index(op.f('ix_courses_code'), 'courses', ['code'], unique=False)
+    op.create_index(op.f('ix_courses_code'), 'courses', ['code'], unique=True)
     op.create_index(op.f('ix_courses_teacher_id'), 'courses', ['teacher_id'], unique=False)
     op.create_table('file',
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
@@ -53,7 +53,7 @@ def upgrade():
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_index(op.f('ix_file_name'), 'file', ['name'], unique=False)
+    op.create_index(op.f('ix_file_name'), 'file', ['name'], unique=True)
     op.create_index(op.f('ix_file_user_id'), 'file', ['user_id'], unique=False)
     op.create_table('signs',
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
